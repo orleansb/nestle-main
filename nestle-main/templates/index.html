@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Sentiment Analysis Dashboard</h1>
+        <p>Real-time insights on public sentiment for Nestle's brands worldwide</p>
+        <nav>
+            <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+                <div class="line"></div>
+                <div class="line"></div>
+                <div class="line"></div>
+            </div>
+            <div class="menu" id="menu">
+                <a href="instagram.html">Instagram</a>
+                <a href="facebook.html">Facebook</a>
+                <a href="twitter.html">Twitter</a>
+                <a href="linkedin.html">LinkedIn</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="language-selector">
+        <select id="language-select" onchange="changeLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+        </select>
+    </div>
+
+    <main>
+        <section class="summary">
+            <div class="card">
+                <h2 id="overall-sentiment-title">Overall Sentiment Score</h2>
+                <p id="sentiment-score">...</p>
+            </div>
+            <div class="card">
+                <h2 id="positive-title">Positive</h2>
+                <p id="positive-score">0%</p>
+            </div>
+            <div class="card">
+                <h2 id="neutral-title">Neutral</h2>
+                <p id="neutral-score">0%</p>
+            </div>
+            <div class="card">
+                <h2 id="negative-title">Negative</h2>
+                <p id="negative-score">0%</p>
+            </div>
+        </section>
+
+        <section class="chart-container">
+            <h2 id="sentiment-distribution-title">Sentiment Distribution</h2>
+            <canvas id="sentiment-chart"></canvas>
+        </section>
+
+        <section class="bar-chart-container">
+            <h2>Sentiment Bar Chart</h2>
+            <canvas id="sentiment-bar-chart"></canvas>
+        </section>
+        
+        <section class="random-comments">
+            <h2 id="random-comments-title">Comments</h2>
+            <ul id="comment-list">
+                <!-- Random comments will be displayed here -->
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sentiment Analysis Dashboard. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        async function fetchSentimentData() {
+            try {
+                const response = await fetch('/sentiment-data');
+                const data = await response.json();
+
+                document.getElementById("sentiment-score").textContent = data.overallSentiment;
+                document.getElementById("positive-score").textContent = `${data.positiveScore}%`;
+                document.getElementById("neutral-score").textContent = `${data.neutralScore}%`;
+                document.getElementById("negative-score").textContent = `${data.negativeScore}%`;
+
+                const ctx = document.getElementById('sentiment-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        datasets: [{
+                            data: [data.positiveScore, data.neutralScore, data.negativeScore],
+                            backgroundColor: ['#4caf50', '#ffc107', '#f44336']
+                        }]
+                    }
+                });
+
+                const barCtx = document.getElementById('sentiment-bar-chart').getContext('2d');
+                new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        datasets: [{
+                            label: 'Sentiment Score',
+                            data: [data.positiveScore, data.neutralScore, data.negativeScore],
+                            backgroundColor: ['#4caf50', '#ffc107', '#f44336'],
+                        }]
+                    }
+                });
+
+                // Display random comments
+                const commentList = document.getElementById("comment-list");
+                data.randomComments.forEach(comment => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${comment.brand}: ${comment.text}`;
+                    commentList.appendChild(listItem);
+                });
+
+            } catch (error) {
+                console.error('Error fetching sentiment data:', error);
+            }
+        }
+
+        fetchSentimentData();
+        
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('open');
+        }
+
+        function changeLanguage(language) {
+            const translations = {
+                en: {
+                    "overall-sentiment-title": "Overall Sentiment",
+                    "positive-title": "Positive",
+                    "neutral-title": "Neutral",
+                    "negative-title": "Negative",
+                    "sentiment-distribution-title": "Sentiment Distribution",
+                    "random-comments-title": "Random Comments"
+                },
+                fr: {
+                    "overall-sentiment-title": "Score de Sentiment Global",
+                    "positive-title": "Positif",
+                    "neutral-title": "Neutre",
+                    "negative-title": "Négatif",
+                    "sentiment-distribution-title": "Distribution des Sentiments",
+                    "random-comments-title": "Commentaires Aléatoires"
+                },
+                es: {
+                    "overall-sentiment-title": "Puntuación General de Sentimiento",
+                    "positive-title": "Positivo",
+                    "neutral-title": "Neutral",
+                    "negative-title": "Negativo",
+                    "sentiment-distribution-title": "Distribución del Sentimiento",
+                    "random-comments-title": "Comentarios Aleatorios"
+                }
+            };
+
+            document.querySelectorAll('[id]').forEach(element => {
+                const id = element.id;
+                if (translations[language][id]) {
+                    element.innerText = translations[language][id];
+                }
+            });
+        }
+       
+        window.onload = fetchSentimentData;
+    </script>
+</body>
+</html>

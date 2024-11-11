@@ -1,0 +1,75 @@
+<!-- instagram.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Twitter Sentiment Analysis</h1>
+        <nav>
+            <a href="overall.html">Overall</a> |
+            <a href="facebook.html">Facebook</a> |
+            <a href="instgram.html">Twitter</a> |
+            <a href="linkedin.html">LinkedIn</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Instagram Sentiment Section -->
+        <section class="platform-section" id="instagram-section">
+            <h2>Instagram Sentiment Analysis</h2>
+            <div class="card">
+                <h3 id="instagram-overall-sentiment-title">Overall Sentiment Score</h3>
+                <p id="instagram-sentiment-score">Loading...</p>
+            </div>
+            <div class="chart-container">
+                <h3 id="instagram-sentiment-distribution-title">Sentiment Distribution</h3>
+                <canvas id="instagram-sentiment-chart"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sentiment Analysis Dashboard. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function fetchInstagramSentimentData() {
+            try {
+                const response = await fetch('/sentiment-data/instagram');
+                const data = await response.json();
+
+                document.getElementById('instagram-sentiment-score').textContent = `${data.overallSentimentScore}`;
+                const ctx = document.getElementById('instagram-sentiment-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        datasets: [{
+                            data: [data.positiveScore, data.neutralScore, data.negativeScore],
+                            backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching Instagram sentiment data:', error);
+            }
+        }
+
+        window.onload = fetchInstagramSentimentData;
+    </script>
+</body>
+</html>
